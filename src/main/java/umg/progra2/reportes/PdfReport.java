@@ -78,13 +78,18 @@ public class PdfReport {
         String currentOrigin = null;
         double groupTotalPrice = 0.0;
         int groupTotalQuantity = 0;
+        double grandTotalPrice = 0.0;
+        int grandTotalQuantity = 0;
 
         for (Producto producto : productos) {
-            System.out.println("Procesando producto: " + producto.getDescripcion() + ", Origen: " + producto.getOrigen());
+            System.out.println("Procesando producto: " + producto.getDescripcion() + ", Origen: " + producto.getOrigen()); // Debug
 
             if (currentOrigin == null || !producto.getOrigen().equals(currentOrigin)) {
+
                 if (currentOrigin != null) {
                     addGroupTotalRow(table, currentOrigin, groupTotalPrice, groupTotalQuantity);
+                    grandTotalPrice += groupTotalPrice;
+                    grandTotalQuantity += groupTotalQuantity;
                 }
 
                 currentOrigin = producto.getOrigen();
@@ -112,9 +117,25 @@ public class PdfReport {
 
         if (currentOrigin != null) {
             addGroupTotalRow(table, currentOrigin, groupTotalPrice, groupTotalQuantity);
+            grandTotalPrice += groupTotalPrice;
+            grandTotalQuantity += groupTotalQuantity;
         }
+
+
+        addGrandTotalRow(table, grandTotalPrice, grandTotalQuantity);
     }
-    
+
+    private void addGrandTotalRow(PdfPTable table, double totalPrice, int totalQuantity) {
+        PdfPCell totalLabelCell = new PdfPCell(new Phrase("Total Final", HEADER_FONT));
+        totalLabelCell.setColspan(3);
+        totalLabelCell.setBackgroundColor(BaseColor.YELLOW);
+        table.addCell(totalLabelCell);
+        table.addCell(new Phrase(String.format("Q%.2f", totalPrice), HEADER_FONT));
+        table.addCell(new Phrase(String.valueOf(totalQuantity), HEADER_FONT));
+        table.addCell(new Phrase("", HEADER_FONT)); // Columna vacía para que la tabla se mantenga balanceada
+    }
+
+
 
     private void addGroupTotalRow(PdfPTable table, String origin, double totalPrice, int totalQuantity) {
         PdfPCell totalLabelCell = new PdfPCell(new Phrase("Total del Grupo: " + origin, HEADER_FONT));
